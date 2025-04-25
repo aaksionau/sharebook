@@ -12,5 +12,4 @@ public class Library : Audit
     [StringLength(512)]
     public string? Address { get; set; }
     public Collection<Book> Books { get; set; } = new Collection<Book>();
-    public required string AdminId { get; set; }
 }

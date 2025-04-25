@@ -13,8 +13,8 @@ public static class LibraryEndpoints
 
         libraryGroup.MapPost("/", async (ILibraryRepository libraryRepository, LibraryDto library) =>
         {
-            var adminId = ""; // TODO: Get the admin ID from the authenticated user or context
-            var createdLibrary = await libraryRepository.CreateAsync(library.ToEntity(adminId));
+            var createdLibrary = await libraryRepository.CreateAsync(library.ToEntity());
+            // TODO: Add libraryId to the user's claims as admin
             return Results.Created($"/api/libraries/{createdLibrary.Id}", createdLibrary);
         });
         libraryGroup.MapGet("/{id:guid}", async (ILibraryRepository libraryRepository, Guid id) =>
@@ -33,8 +33,7 @@ public static class LibraryEndpoints
             {
                 return Results.BadRequest("ID mismatch.");
             }
-            var adminId = ""; // TODO: Get the admin ID from the authenticated user or context
-            var library = await libraryRepository.UpdateAsync(updatedLibrary.ToEntity(adminId));
+            var library = await libraryRepository.UpdateAsync(updatedLibrary.ToEntity());
             return library is not null ? Results.Ok(library) : Results.NotFound();
         });
         libraryGroup.MapDelete("/{id:guid}", async (ILibraryRepository libraryRepository, Guid id) =>

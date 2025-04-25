@@ -1,5 +1,3 @@
-using System;
-using System.ComponentModel.DataAnnotations;
 using ShareBook.API.Domain.Entities;
 
 namespace ShareBook.API.Contracts;
@@ -14,14 +12,13 @@ public class LibraryDto
 public static class LibraryDtoExtensions
 {
     // Convert LibraryDto to Library entity
-    public static Library ToEntity(this LibraryDto libraryDto, string adminId)
+    public static Library ToEntity(this LibraryDto libraryDto)
     {
         return new Library
         {
             Id = libraryDto.Id,
             Name = libraryDto.Name,
             Address = libraryDto.Address,
-            AdminId = adminId,
         };
     }
 
