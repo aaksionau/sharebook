@@ -9,6 +9,7 @@ public static class BookEndpoints
     public static void MapBookEndpoints(this WebApplication app)
     {
         var bookGroup = app.MapGroup("/api/books")
+            .RequireAuthorization()
             .WithTags("Books");
 
         bookGroup.MapPost("/", async (IBookRepository bookRepository, BookDto book) =>

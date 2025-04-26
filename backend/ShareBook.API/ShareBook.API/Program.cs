@@ -1,40 +1,62 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using ShareBook.API.Contracts;
 using ShareBook.API.Domain.Repositories;
 using ShareBook.API.Endpoints;
 using ShareBook.API.Persistence;
 using ShareBook.API.Persistence.Repositories;
+using ShareBook.API.Services.Abstractions.Helpers;
 using ShareBook.API.Services.Abstractions.Validators;
+using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition(
+        "oauth2",
+        new OpenApiSecurityScheme
+        {
+            In = ParameterLocation.Header,
+            Name = "Authorization",
+            Type = SecuritySchemeType.ApiKey,
+        }
+    );
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
+});
 
-builder.Services.AddAuthentication()
-    .AddBearerToken(IdentityConstants.BearerScheme);
+builder.Services.AddAuthentication().AddBearerToken();
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOfLibraryOnly", policy => policy.RequireClaim("AdminForLibraryId"));
+});
 
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string not configured")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string not configured")
+    )
+);
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddApiEndpoints()
-    .AddDefaultTokenProviders();
+builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddEntityFrameworkStores<AppDbContext>();
 
 // Add Repositories
 builder.Services.AddScoped<ILibraryRepository, LibraryRepository>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<IClaimsHelper, ClaimsHelper>();
 
 // Add services.
 builder.Services.AddHttpClient<IISBNdbService, ISBNdbService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ISBNdb:BaseUrl"] ?? throw new InvalidOperationException("Base URL not configured"));
+    client.BaseAddress = new Uri(
+        builder.Configuration["ISBNdb:BaseUrl"]
+            ?? throw new InvalidOperationException("Base URL not configured")
+    );
     client.DefaultRequestHeaders.Add("Authorization", builder.Configuration["ISBNdb:ApiKey"]);
 });
 

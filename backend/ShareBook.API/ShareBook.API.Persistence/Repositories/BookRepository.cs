@@ -33,6 +33,7 @@ public class BookRepository : IBookRepository
     public async Task<List<Book>> GetAllAsync(int pageNumber = 1, int pageSize = 10)
     {
         return await _context.Books
+            .OrderBy(b => b.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

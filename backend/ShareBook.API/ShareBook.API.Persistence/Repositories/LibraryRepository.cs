@@ -22,16 +22,17 @@ public class LibraryRepository : ILibraryRepository
     }
 
     // Get a library by ID
-    public async Task<Library?> GetByIdAsync(Guid id)
+    public async Task<Library?> GetByIdAsync(string id)
     {
         return await _context.Libraries
-            .FirstOrDefaultAsync(l => l.Id == id.ToString());
+            .FirstOrDefaultAsync(l => l.Id == id);
     }
 
     // Get all libraries
-    public async Task<List<Library>> GetAllAsync()
+    public async Task<List<Library>> GetAllAsync(string libraryId)
     {
         return await _context.Libraries
+            .Where(l => l.Id == libraryId)
             .ToListAsync();
     }
 
@@ -50,7 +51,7 @@ public class LibraryRepository : ILibraryRepository
     }
 
     // Delete a library by ID
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task<bool> DeleteAsync(string id)
     {
         var library = await _context.Libraries.FindAsync(id);
         if (library == null)
