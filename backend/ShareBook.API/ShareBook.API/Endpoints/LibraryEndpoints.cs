@@ -25,6 +25,7 @@ public static class LibraryEndpoints
                 HttpContext httpContext
             ) =>
             {
+                // TODO: Check if the library already exists
                 var createdLibrary = await libraryRepository.CreateAsync(library.ToEntity());
                 await claimsHelper.AddAdminForLibraryIdClaimAsync(
                     httpContext.User,
@@ -40,18 +41,14 @@ public static class LibraryEndpoints
         /// <summary>
         /// Get a library by ID
         /// </summary>
-        libraryGroup
-            .MapGet(
-                "/{id}",
-                async (ILibraryRepository libraryRepository, string id) =>
-                {
-                    var library = await libraryRepository.GetByIdAsync(id);
-                    return library is not null
-                        ? Results.Ok(library.FromEntity())
-                        : Results.NotFound();
-                }
-            )
-            .AddEndpointFilter<AdminLibraryFilter>();
+        libraryGroup.MapGet(
+            "/{id}",
+            async (ILibraryRepository libraryRepository, string id) =>
+            {
+                var library = await libraryRepository.GetByIdAsync(id);
+                return library is not null ? Results.Ok(library.FromEntity()) : Results.NotFound();
+            }
+        );
 
         /// <summary>
         /// Get all libraries for the current user
@@ -95,7 +92,9 @@ public static class LibraryEndpoints
                         return Results.BadRequest("ID mismatch.");
                     }
                     var library = await libraryRepository.UpdateAsync(updatedLibrary.ToEntity());
-                    return library is not null ? Results.Ok(library) : Results.NotFound();
+                    return library is not null
+                        ? Results.Ok(library.FromEntity())
+                        : Results.NotFound();
                 }
             )
             .AddEndpointFilter<AdminLibraryFilter>();
