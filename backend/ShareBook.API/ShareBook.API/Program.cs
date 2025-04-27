@@ -48,6 +48,7 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddEntityFrameworkStore
 // Add Repositories
 builder.Services.AddScoped<ILibraryRepository, LibraryRepository>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<IBookInstanceRepository, BookInstanceRepository>();
 builder.Services.AddScoped<IClaimsHelper, ClaimsHelper>();
 
 // Add services.

@@ -1,29 +1,51 @@
-using Microsoft.AspNetCore.Mvc;
 using ShareBook.API.Contracts;
+using ShareBook.API.Domain.Entities;
+using ShareBook.API.Domain.Repositories;
+using ShareBook.API.Services.Abstractions.Contracts;
+using ShareBook.API.Services.Abstractions.Extensions;
+using ShareBook.API.Services.Abstractions.Helpers;
 
 public static class SearchEndpoints
 {
     public static void MapSearchEndpoints(this WebApplication app)
     {
-        var searchGroup = app.MapGroup("/api/search").WithTags("Search");
+        var searchGroup = app.MapGroup("/api/search").RequireAuthorization().WithTags("Search");
 
         searchGroup
             .MapGet(
                 "/",
-                async (string? query, string? isbn, [FromServices] IISBNdbService isbnDbService) =>
+                async (
+                    string? isbn,
+                    IISBNdbService isbnDbService,
+                    IBookRepository bookRepository,
+                    IBookInstanceRepository bookInstanceRepository,
+                    IClaimsHelper claimsHelper
+                ) =>
                 {
-                    if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(isbn))
+                    if (string.IsNullOrWhiteSpace(isbn))
                     {
                         return Results.BadRequest("Please provide a search query or an ISBN.");
                     }
 
-                    if (!string.IsNullOrWhiteSpace(isbn))
+                    var libraryId = await claimsHelper.GetCurrentLibraryIdAsync();
+                    var localBook = await bookRepository.ExistsAsync(libraryId, isbn, isbn);
+
+                    if (localBook is not null)
                     {
-                        var book = await isbnDbService.GetBookByIsbn(isbn);
-                        return book is not null ? Results.Ok(book) : Results.NotFound();
+                        return Results.Ok(
+                            new SearchResultDto
+                            {
+                                Book = localBook.Book.FromEntity(),
+                                ExistInCurrentLibrary = true,
+                                NumberOfCopies = localBook.NumberOfCopies,
+                            }
+                        );
                     }
 
-                    return Results.BadRequest("Invalid search parameters.");
+                    var book = await isbnDbService.GetBookByIsbn(isbn);
+
+                    var result = new SearchResultDto { Book = book };
+                    return Results.Ok(result);
                 }
             )
             .WithName("SearchBooks")
