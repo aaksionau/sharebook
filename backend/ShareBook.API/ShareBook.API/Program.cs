@@ -1,4 +1,5 @@
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -62,6 +63,7 @@ builder.Services.AddHttpClient<IISBNdbService, ISBNdbService>(client =>
 });
 
 // Add FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddScoped<IValidator<BookDto>, BookValidator>();
 builder.Services.AddScoped<IValidator<LibraryDto>, LibraryValidator>();
 
