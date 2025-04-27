@@ -24,16 +24,13 @@ public class LibraryRepository : ILibraryRepository
     // Get a library by ID
     public async Task<Library?> GetByIdAsync(string id)
     {
-        return await _context.Libraries
-            .FirstOrDefaultAsync(l => l.Id == id);
+        return await _context.Libraries.FirstOrDefaultAsync(l => l.Id == id);
     }
 
     // Get all libraries
-    public async Task<List<Library>> GetAllAsync(string libraryId)
+    public async Task<List<Library>> GetAllAsync(List<string> libraryIds)
     {
-        return await _context.Libraries
-            .Where(l => l.Id == libraryId)
-            .ToListAsync();
+        return await _context.Libraries.Where(l => libraryIds.Contains(l.Id)).ToListAsync();
     }
 
     // Update an existing library

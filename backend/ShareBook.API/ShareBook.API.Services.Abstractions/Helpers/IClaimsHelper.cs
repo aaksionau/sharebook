@@ -14,10 +14,16 @@ public interface IClaimsHelper
         ClaimsPrincipal userClaimsPrinciple,
         string libraryId
     );
-    Task<string> GetAdminForLibraryIdClaimAsync(ClaimsPrincipal userClaimsPrinciple);
+    Task<List<string>> GetAdminForLibraryIdsClaimAsync(ClaimsPrincipal userClaimsPrinciple);
+    Task<string> GetCurrentLibraryIdClaimAsync(ClaimsPrincipal userClaimsPrinciple);
     Task<bool> RemoveAdminForLibraryIdClaimAsync(
         ClaimsPrincipal userClaimsPrinciple,
         string libraryId
     );
     Task<bool> IsAdminForLibraryIdClaimAsync(ClaimsPrincipal userClaimsPrinciple, string libraryId);
+    Task<bool> UpdateCurrentUserLibraryIdClaimAsync(
+        ClaimsPrincipal userClaimsPrinciple,
+        string libraryId,
+        bool updateExisting = true
+    );
 }

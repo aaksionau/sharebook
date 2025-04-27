@@ -31,12 +31,41 @@ public static class LibraryEndpoints
                     httpContext.User,
                     createdLibrary.Id
                 );
+                await claimsHelper.UpdateCurrentUserLibraryIdClaimAsync(
+                    httpContext.User,
+                    createdLibrary.Id,
+                    false
+                );
                 return Results.Created(
                     $"/api/libraries/{createdLibrary.Id}",
                     createdLibrary.FromEntity()
                 );
             }
         );
+
+        /// <summary>
+        /// Set the current library for the authenticated user
+        /// </summary>
+        /// <remarks>
+        /// This endpoint updates the current library ID claim for the authenticated user.
+        /// It is used to set the current library for the user.
+        /// Id is to check if the user is an admin for the library.
+        /// </remarks>
+        libraryGroup
+            .MapPost(
+                "/{id}/current/",
+                async (string id, IClaimsHelper claimsHelper, HttpContext httpContext) =>
+                {
+                    var result = await claimsHelper.UpdateCurrentUserLibraryIdClaimAsync(
+                        httpContext.User,
+                        id
+                    );
+                    return result
+                        ? Results.Ok()
+                        : Results.Problem("Failed to update current library.");
+                }
+            )
+            .AddEndpointFilter<AdminLibraryFilter>();
 
         /// <summary>
         /// Get a library by ID
@@ -61,15 +90,23 @@ public static class LibraryEndpoints
                 IClaimsHelper claimsHelper
             ) =>
             {
-                var adminLibraryId = await claimsHelper.GetAdminForLibraryIdClaimAsync(
+                var adminLibraryIds = await claimsHelper.GetAdminForLibraryIdsClaimAsync(
                     httpContext.User
                 );
-                if (string.IsNullOrEmpty(adminLibraryId))
+                if (!adminLibraryIds.Any())
                 {
                     return Results.NotFound("No library found for the current user.");
                 }
-                var libraries = await libraryRepository.GetAllAsync(adminLibraryId);
-                return Results.Ok(libraries.Select(l => l.FromEntity()));
+                var currentLibrary = await claimsHelper.GetCurrentLibraryIdClaimAsync(
+                    httpContext.User
+                );
+                var libraries = await libraryRepository.GetAllAsync(adminLibraryIds);
+                var dtos = libraries.Select(x => x.FromEntity()).ToList();
+                dtos.ForEach(l =>
+                {
+                    l.IsCurrent = l.Id == currentLibrary;
+                });
+                return Results.Ok(dtos);
             }
         );
 

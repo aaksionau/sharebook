@@ -17,6 +17,30 @@ public class ClaimsHelper : IClaimsHelper
         return await _userManager.FindByIdAsync(userId);
     }
 
+    public async Task<bool> UpdateCurrentUserLibraryIdClaimAsync(
+        ClaimsPrincipal userClaimsPrinciple,
+        string libraryId,
+        bool updateExisting = true
+    )
+    {
+        // Check if the claim already exists
+        var user = await GetUserAsync(userClaimsPrinciple);
+        var existingClaims = await _userManager.GetClaimsAsync(user);
+        var existingClaim = existingClaims.FirstOrDefault(c =>
+            c.Type == "CurrentLibraryId" && c.Value != null
+        );
+        if (existingClaim != null && updateExisting)
+        {
+            // Remove the existing claim
+            await _userManager.RemoveClaimAsync(user, existingClaim);
+        }
+
+        // Add the new claim
+        var claim = new Claim("CurrentLibraryId", libraryId);
+        var result = await _userManager.AddClaimAsync(user, claim);
+        return result.Succeeded;
+    }
+
     public async Task<bool> AddAdminForLibraryIdClaimAsync(
         ClaimsPrincipal userClaimsPrinciple,
         string libraryId
@@ -57,12 +81,20 @@ public class ClaimsHelper : IClaimsHelper
         return result.Succeeded;
     }
 
-    public async Task<string> GetAdminForLibraryIdClaimAsync(ClaimsPrincipal userClaimsPrinciple)
+    public async Task<List<string>> GetAdminForLibraryIdsClaimAsync(
+        ClaimsPrincipal userClaimsPrinciple
+    )
     {
         var user = await GetUserAsync(userClaimsPrinciple);
         var claims = await _userManager.GetClaimsAsync(user);
-        var claim = claims.FirstOrDefault(c => c.Type == "AdminForLibraryId");
-        return claim?.Value;
+        return claims.Where(c => c.Type == "AdminForLibraryId").Select(c => c.Value).ToList();
+    }
+
+    public async Task<string> GetCurrentLibraryIdClaimAsync(ClaimsPrincipal userClaimsPrinciple)
+    {
+        var user = await GetUserAsync(userClaimsPrinciple);
+        var claims = await _userManager.GetClaimsAsync(user);
+        return claims.FirstOrDefault(c => c.Type == "CurrentLibraryId")?.Value ?? string.Empty;
     }
 
     public async Task<bool> IsAdminForLibraryIdClaimAsync(
@@ -73,5 +105,13 @@ public class ClaimsHelper : IClaimsHelper
         var user = await GetUserAsync(userClaimsPrinciple);
         var claims = await _userManager.GetClaimsAsync(user);
         return claims.Any(c => c.Type == "AdminForLibraryId" && c.Value == libraryId);
+    }
+
+    public async Task<string> GetCurrentUserLibraryIdClaimAsync(ClaimsPrincipal userClaimsPrinciple)
+    {
+        var user = await GetUserAsync(userClaimsPrinciple);
+        var claims = await _userManager.GetClaimsAsync(user);
+        var claim = claims.FirstOrDefault(c => c.Type == "CurrentLibraryId");
+        return claim?.Value ?? string.Empty;
     }
 }

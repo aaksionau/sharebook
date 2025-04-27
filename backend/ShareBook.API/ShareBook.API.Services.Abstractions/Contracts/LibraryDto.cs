@@ -7,6 +7,7 @@ public class LibraryDto
     public required string Id { get; set; }
     public required string Name { get; set; }
     public string? Address { get; set; }
+    public bool IsCurrent { get; set; }
 }
 
 public static class LibraryDtoExtensions
@@ -29,7 +30,7 @@ public static class LibraryDtoExtensions
         {
             Id = library.Id.ToString(),
             Name = library.Name,
-            Address = library.Address
+            Address = library.Address,
         };
     }
 }
