@@ -37,12 +37,6 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<BookInstance>().HasKey(bi => bi.Id);
-        modelBuilder
-            .Entity<BookInstance>()
-            .HasOne(bi => bi.Book)
-            .WithMany(b => b.BookInstances)
-            .HasForeignKey(bi => bi.BookId)
-            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Library>().HasKey(l => l.Id);
     }
