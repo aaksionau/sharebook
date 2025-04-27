@@ -21,21 +21,13 @@ public static class LibraryEndpoints
             async (
                 ILibraryRepository libraryRepository,
                 LibraryDto library,
-                IClaimsHelper claimsHelper,
-                HttpContext httpContext
+                IClaimsHelper claimsHelper
             ) =>
             {
                 // TODO: Check if the library already exists
                 var createdLibrary = await libraryRepository.CreateAsync(library.ToEntity());
-                await claimsHelper.AddAdminForLibraryIdClaimAsync(
-                    httpContext.User,
-                    createdLibrary.Id
-                );
-                await claimsHelper.UpdateCurrentUserLibraryIdClaimAsync(
-                    httpContext.User,
-                    createdLibrary.Id,
-                    false
-                );
+                await claimsHelper.AddAdminForLibraryIdCAsync(createdLibrary.Id);
+                await claimsHelper.UpdateCurrentUserLibraryIdAsync(createdLibrary.Id, false);
                 return Results.Created(
                     $"/api/libraries/{createdLibrary.Id}",
                     createdLibrary.FromEntity()
@@ -54,12 +46,9 @@ public static class LibraryEndpoints
         libraryGroup
             .MapPost(
                 "/{id}/current/",
-                async (string id, IClaimsHelper claimsHelper, HttpContext httpContext) =>
+                async (string id, IClaimsHelper claimsHelper) =>
                 {
-                    var result = await claimsHelper.UpdateCurrentUserLibraryIdClaimAsync(
-                        httpContext.User,
-                        id
-                    );
+                    var result = await claimsHelper.UpdateCurrentUserLibraryIdAsync(id);
                     return result
                         ? Results.Ok()
                         : Results.Problem("Failed to update current library.");
@@ -72,10 +61,17 @@ public static class LibraryEndpoints
         /// </summary>
         libraryGroup.MapGet(
             "/{id}",
-            async (ILibraryRepository libraryRepository, string id) =>
+            async (ILibraryRepository libraryRepository, string id, IClaimsHelper claimsHelper) =>
             {
                 var library = await libraryRepository.GetByIdAsync(id);
-                return library is not null ? Results.Ok(library.FromEntity()) : Results.NotFound();
+                if (library is null)
+                {
+                    return Results.NotFound();
+                }
+                var currentLibrary = await claimsHelper.GetCurrentLibraryIdAsync();
+                var result = library.FromEntity();
+                result.IsCurrent = result.Id == currentLibrary;
+                return library is not null ? Results.Ok(result) : Results.NotFound();
             }
         );
 
@@ -84,22 +80,14 @@ public static class LibraryEndpoints
         /// </summary>
         libraryGroup.MapGet(
             "/",
-            async (
-                ILibraryRepository libraryRepository,
-                HttpContext httpContext,
-                IClaimsHelper claimsHelper
-            ) =>
+            async (ILibraryRepository libraryRepository, IClaimsHelper claimsHelper) =>
             {
-                var adminLibraryIds = await claimsHelper.GetAdminForLibraryIdsClaimAsync(
-                    httpContext.User
-                );
+                var adminLibraryIds = await claimsHelper.GetAdminForLibraryIdsAsync();
                 if (!adminLibraryIds.Any())
                 {
                     return Results.NotFound("No library found for the current user.");
                 }
-                var currentLibrary = await claimsHelper.GetCurrentLibraryIdClaimAsync(
-                    httpContext.User
-                );
+                var currentLibrary = await claimsHelper.GetCurrentLibraryIdAsync();
                 var libraries = await libraryRepository.GetAllAsync(adminLibraryIds);
                 var dtos = libraries.Select(x => x.FromEntity()).ToList();
                 dtos.ForEach(l =>
@@ -120,7 +108,6 @@ public static class LibraryEndpoints
                     string id,
                     LibraryDto updatedLibrary,
                     ILibraryRepository libraryRepository,
-                    HttpContext httpContext,
                     IClaimsHelper claimsHelper
                 ) =>
                 {
@@ -142,8 +129,7 @@ public static class LibraryEndpoints
                 async (
                     string id,
                     ILibraryRepository libraryRepository,
-                    IClaimsHelper claimsHelper,
-                    HttpContext httpContext
+                    IClaimsHelper claimsHelper
                 ) =>
                 {
                     var deleted = await libraryRepository.DeleteAsync(id);

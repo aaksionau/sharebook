@@ -25,10 +25,7 @@ public class AdminLibraryFilter : IEndpointFilter
             return Results.BadRequest("Library ID is required.");
         }
 
-        var isAdmin = await this.claimsHelper.IsAdminForLibraryIdClaimAsync(
-            context.HttpContext.User,
-            libraryId
-        );
+        var isAdmin = await this.claimsHelper.IsAdminForLibraryIdAsync(libraryId);
         if (!isAdmin)
         {
             this.logger.LogWarning(

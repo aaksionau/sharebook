@@ -1,6 +1,7 @@
 using System;
 using ShareBook.API.Contracts;
 using ShareBook.API.Domain.Repositories;
+using ShareBook.API.Services.Abstractions.Helpers;
 
 namespace ShareBook.API.Endpoints;
 
@@ -12,10 +13,10 @@ public static class BookEndpoints
 
         bookGroup.MapPost(
             "/",
-            async (IBookRepository bookRepository, BookDto book) =>
+            async (IBookRepository bookRepository, BookDto book, IClaimsHelper claimsHelper) =>
             {
                 // TODO: Get the library ID from the authenticated user or context
-                var libraryId = "";
+                var libraryId = await claimsHelper.GetCurrentLibraryIdAsync();
                 var createdBook = await bookRepository.CreateAsync(book.ToEntity(libraryId));
                 return Results.Created($"/api/books/{createdBook.Id}", createdBook);
             }

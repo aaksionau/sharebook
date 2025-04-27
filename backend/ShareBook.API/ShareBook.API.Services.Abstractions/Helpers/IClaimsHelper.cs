@@ -1,29 +1,12 @@
-using System.Security.Claims;
-
 namespace ShareBook.API.Services.Abstractions.Helpers;
 
 public interface IClaimsHelper
 {
-    /// <summary>
-    /// Adds an admin claim for a specific library ID to the provided user's claims principal.
-    /// </summary>
-    /// <param name="userClaimsPrinciple">The claims principal of the user to which the admin claim will be added.</param>
-    /// <param name="libraryId">The ID of the library for which the admin claim is being added.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the claim was successfully added.</returns>
-    Task<bool> AddAdminForLibraryIdClaimAsync(
-        ClaimsPrincipal userClaimsPrinciple,
-        string libraryId
-    );
-    Task<List<string>> GetAdminForLibraryIdsClaimAsync(ClaimsPrincipal userClaimsPrinciple);
-    Task<string> GetCurrentLibraryIdClaimAsync(ClaimsPrincipal userClaimsPrinciple);
-    Task<bool> RemoveAdminForLibraryIdClaimAsync(
-        ClaimsPrincipal userClaimsPrinciple,
-        string libraryId
-    );
-    Task<bool> IsAdminForLibraryIdClaimAsync(ClaimsPrincipal userClaimsPrinciple, string libraryId);
-    Task<bool> UpdateCurrentUserLibraryIdClaimAsync(
-        ClaimsPrincipal userClaimsPrinciple,
-        string libraryId,
-        bool updateExisting = true
-    );
+    Task<bool> UpdateCurrentUserLibraryIdAsync(string libraryId, bool updateExisting = true);
+    Task<bool> AddAdminForLibraryIdCAsync(string libraryId);
+    Task<bool> RemoveAdminForLibraryIdAsync(string libraryId);
+    Task<List<string>> GetAdminForLibraryIdsAsync();
+    Task<string> GetCurrentLibraryIdAsync();
+    Task<bool> IsAdminForLibraryIdAsync(string libraryId);
+    Task<string> GetCurrentUserLibraryIdAsync();
 }
