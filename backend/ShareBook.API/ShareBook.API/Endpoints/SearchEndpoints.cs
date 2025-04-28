@@ -1,5 +1,4 @@
 using ShareBook.API.Contracts;
-using ShareBook.API.Domain.Entities;
 using ShareBook.API.Domain.Repositories;
 using ShareBook.API.Services.Abstractions.Contracts;
 using ShareBook.API.Services.Abstractions.Extensions;
@@ -44,7 +43,12 @@ public static class SearchEndpoints
 
                     var book = await isbnDbService.GetBookByIsbn(isbn);
 
-                    var result = new SearchResultDto { Book = book };
+                    var result = new SearchResultDto
+                    {
+                        Book = book,
+                        ExistInCurrentLibrary = false,
+                        NumberOfCopies = 0,
+                    };
                     return Results.Ok(result);
                 }
             )
