@@ -9,7 +9,7 @@ public static class SearchEndpoints
 {
     public static void MapSearchEndpoints(this WebApplication app)
     {
-        var searchGroup = app.MapGroup("/api/search").RequireAuthorization().WithTags("Search");
+        var searchGroup = app.MapGroup("/search").RequireAuthorization().WithTags("Search");
 
         searchGroup
             .MapGet(

@@ -9,9 +9,7 @@ public static class LibraryEndpoints
 {
     public static void MapLibraryEndpoints(this WebApplication app)
     {
-        var libraryGroup = app.MapGroup("/api/libraries")
-            .RequireAuthorization()
-            .WithTags("Libraries");
+        var libraryGroup = app.MapGroup("/libraries").RequireAuthorization().WithTags("Libraries");
 
         /// <summary>
         /// Create a new library

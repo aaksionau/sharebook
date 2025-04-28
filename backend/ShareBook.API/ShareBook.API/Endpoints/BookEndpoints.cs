@@ -12,7 +12,7 @@ public static class BookEndpoints
 {
     public static void MapBookEndpoints(this WebApplication app)
     {
-        var bookGroup = app.MapGroup("/api/books").RequireAuthorization().WithTags("Books");
+        var bookGroup = app.MapGroup("/books").RequireAuthorization().WithTags("Books");
 
         bookGroup.MapPost(
             "/",
