@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
 using ShareBook.API.Contracts;
 using ShareBook.API.Domain.Repositories;
@@ -11,6 +12,7 @@ using ShareBook.API.Persistence.Repositories;
 using ShareBook.API.Services.Abstractions.Helpers;
 using ShareBook.API.Services.Abstractions.Validators;
 using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
