@@ -1,4 +1,6 @@
+using System.Net;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using ShareBook.Mobile.Models;
@@ -17,6 +19,7 @@ public class HttpHelperService
     public HttpHelperService(IConfiguration configuration)
     {
         _httpClient = new HttpClient();
+        _httpClient.DefaultRequestHeaders.Accept.Clear();
         _httpClient.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/json")
         );
@@ -31,10 +34,6 @@ public class HttpHelperService
 
     public async Task<T?> GetAsync<T>(string alias, int retryCount = 0)
     {
-        this._httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            this.Token
-        );
         var response = await _httpClient.GetAsync(alias);
         if (response.IsSuccessStatusCode)
         {
@@ -64,28 +63,35 @@ public class HttpHelperService
     {
         var response = await this.PostAsync<TokenModel, TokenModel>(
             "refresh",
-            new TokenModel() { Refresh = this.RefreshToken }
+            new TokenModel() { RefreshToken = this.RefreshToken }
         );
+        if (string.IsNullOrEmpty(response?.Token))
+        {
+            return false;
+        }
 
-        this.Token = response?.Token;
-        this.RefreshToken = response?.Refresh;
+        SetToken(response.Token!, response.RefreshToken!);
 
-        return string.IsNullOrEmpty(this.Token);
+        return !string.IsNullOrEmpty(this.Token);
     }
 
     public async Task<T?> PostAsync<T, V>(string alias, V data)
         where T : class
+        where V : class
     {
         var content = new StringContent(
             JsonSerializer.Serialize(data, _jsonSerializerOptions),
-            System.Text.Encoding.UTF8,
+            Encoding.UTF8,
             "application/json"
         );
+
         var response = await _httpClient.PostAsync(alias, content);
+
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(result, _jsonSerializerOptions);
+            var model = JsonSerializer.Deserialize<T>(result, _jsonSerializerOptions);
+            return model;
         }
         else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) { }
         else
@@ -94,5 +100,20 @@ public class HttpHelperService
             throw new Exception($"Error: {response.StatusCode}");
         }
         return default;
+    }
+
+    public void SetToken(string token, string refreshToken)
+    {
+        this.Token = token;
+        this.RefreshToken = refreshToken;
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            this.Token
+        );
+    }
+
+    public bool IsAuthenticated()
+    {
+        return !string.IsNullOrEmpty(this.Token);
     }
 }

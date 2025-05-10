@@ -11,5 +11,5 @@ public class MainViewModel : ViewModel
         this.httpHelperService = httpHelperService;
     }
 
-    public bool IsAuthenticated => !string.IsNullOrEmpty(this.httpHelperService.Token);
+    public bool IsAuthenticated => httpHelperService.IsAuthenticated();
 }

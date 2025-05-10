@@ -24,7 +24,10 @@ public static class MauiProgram
 
         builder.Configuration.AddConfiguration(config);
 
-        builder.Services.AddSingleton(new HttpHelperService(builder.Configuration));
+        builder.Services.AddSingleton(serviceProvider =>
+        {
+            return ActivatorUtilities.CreateInstance<HttpHelperService>(serviceProvider, config);
+        });
 
         builder.Services.AddSingleton<LoginViewModel>();
         builder.Services.AddSingleton<MainViewModel>();

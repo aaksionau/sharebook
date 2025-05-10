@@ -41,7 +41,9 @@ public class LoginViewModel : ViewModel
             this.LoginModel!
         );
 
-        if (string.IsNullOrEmpty(result?.Token))
+        this.httpHelperService.SetToken(result?.Token, result?.RefreshToken);
+
+        if (!string.IsNullOrEmpty(result?.Token))
         {
             await Shell.Current.GoToAsync("//MainPage");
         }

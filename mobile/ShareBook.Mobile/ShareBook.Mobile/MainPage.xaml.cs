@@ -10,6 +10,7 @@ public partial class MainPage : ContentPage
     public MainPage(MainViewModel mainViewModel)
     {
         InitializeComponent();
+
         _viewModel = mainViewModel;
         BindingContext = mainViewModel;
 
