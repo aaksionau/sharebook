@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:validations="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
+             xmlns:input="clr-namespace:InputKit.Shared.Controls;assembly=InputKit.Maui"
+             x:Class="ShareBook.Mobile.Views.LoginPage">
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False"
+                            IsEnabled="False"/>
+    </Shell.BackButtonBehavior>
+    <ContentPage.Content>
+        <StackLayout Padding="30"
+                     Spacing="20"
+                     VerticalOptions="Center">
+            <Label Text="Login"
+                   FontSize="32"
+                   HorizontalOptions="Center"/>
+
+            <material:TextField Title="Email"
+                                Text="{Binding  LoginModel.Email}">
+                <validations:RequiredValidation/>
+                <validations:RegexValidation Message="Please type a valid e-mail address."
+                                             Pattern="{x:Static input:AdvancedEntry.REGEX_EMAIL}"/>
+            </material:TextField>
+            <material:TextField Title="Password"
+                                IsPassword="True"
+                                Text="{Binding LoginModel.Password}">
+                <validations:RequiredValidation/>
+                <validations:RegexValidation Message="Password should contain minimum 6 lowercase and uppercase letters, and numbers"
+                                             Pattern="{x:Static input:AdvancedEntry.REGEX_PASSWORD}"/>
+            </material:TextField>
+            <Button StyleClass="TextButton"
+                    Text="Forgot Password?"
+                    HorizontalOptions="End"
+                    Padding="0, 10"></Button>
+
+            <Button StyleClass="FilledButton"
+                    Text="Login"
+                    Command="{Binding AuthenticateCommand}"/>
+            <BoxView StyleClass="Divider"/>
+            <Button Text="Register"
+                    StyleClass="OutlinedButton"
+                    Command="{Binding RegisterCommand}"/>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

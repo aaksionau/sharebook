@@ -1,7 +1,11 @@
+using System.Text.Json.Serialization;
+
 namespace ShareBook.Mobile.Models;
 
 public class TokenModel
 {
-    public string Token { get; set; }
-    public string Refresh { get; set; }
+    [JsonPropertyName("accessToken")]
+    public string? Token { get; set; }
+    [JsonPropertyName("refreshToken")]
+    public string? Refresh { get; set; }
 }

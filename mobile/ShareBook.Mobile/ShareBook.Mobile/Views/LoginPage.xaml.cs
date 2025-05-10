@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ShareBook.Mobile.ViewModels;
 
 namespace ShareBook.Mobile.Views;
 
-public partial class LoginView : ContentView
+public partial class LoginPage : ContentPage
 {
-    public LoginView()
+    public LoginPage(LoginViewModel viewModel)
     {
         InitializeComponent();
+        BindingContext = viewModel;
     }
 }
