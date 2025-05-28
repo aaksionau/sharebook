@@ -2,7 +2,7 @@ using ShareBook.API.Contracts;
 using ShareBook.API.Domain.Repositories;
 using ShareBook.API.Services.Abstractions.Contracts;
 using ShareBook.API.Services.Abstractions.Extensions;
-using ShareBook.API.Services.Abstractions.Helpers;
+using ShareBook.API.Services.Abstractions.Services;
 
 public static class SearchEndpoints
 {
@@ -18,7 +18,7 @@ public static class SearchEndpoints
                     IISBNdbService isbnDbService,
                     IBookRepository bookRepository,
                     IBookInstanceRepository bookInstanceRepository,
-                    IClaimsHelper claimsHelper
+                    IUserService userService
                 ) =>
                 {
                     if (string.IsNullOrWhiteSpace(isbn))
@@ -26,7 +26,7 @@ public static class SearchEndpoints
                         return Results.BadRequest("Please provide a search query or an ISBN.");
                     }
 
-                    var libraryId = await claimsHelper.GetCurrentLibraryIdAsync();
+                    var libraryId = await userService.GetCurrentLibraryIdAsync();
                     var localBook = await bookRepository.ExistsAsync(libraryId, isbn, isbn);
 
                     if (localBook is not null)

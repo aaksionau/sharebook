@@ -28,4 +28,29 @@ public class BookDto
     public string? Binding { get; set; }
     public string? Isbn { get; set; }
     public string? Isbn10 { get; set; }
+
+    public static BookDto FromEntity(Book book)
+    {
+        return new BookDto
+        {
+            Id = book.Id,
+            Publisher = book.Publisher,
+            Synopsis = book.Synopsis,
+            Language = book.Language,
+            Image = book.Image,
+            ImageOriginal = book.ImageOriginal,
+            TitleLong = book.TitleLong,
+            Edition = book.Edition,
+            Dimensions = book.Dimensions,
+            Pages = book.Pages,
+            DatePublished = book.DatePublished,
+            Subjects = book.Subjects?.ToList(),
+            Authors = book.Authors?.ToList(),
+            Title = book.Title,
+            Isbn13 = book.Isbn13,
+            Binding = book.Binding,
+            Isbn = book.Isbn,
+            Isbn10 = book.Isbn10,
+        };
+    }
 }

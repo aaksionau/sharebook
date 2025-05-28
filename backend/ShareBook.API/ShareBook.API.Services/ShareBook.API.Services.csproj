@@ -8,8 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ShareBook.API.Domain\ShareBook.API.Domain.csproj" />
-    <ProjectReference
-      Include="..\ShareBook.API.Services.Abstractions\ShareBook.API.Services.Abstractions.csproj" />
+    <ProjectReference Include="..\ShareBook.API.Services.Abstractions\ShareBook.API.Services.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

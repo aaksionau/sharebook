@@ -1,7 +1,8 @@
 using ShareBook.API.Contracts;
 using ShareBook.API.Domain.Repositories;
 using ShareBook.API.Filters;
-using ShareBook.API.Services.Abstractions.Helpers;
+using ShareBook.API.Services.Abstractions.Extensions;
+using ShareBook.API.Services.Abstractions.Services;
 
 namespace ShareBook.API.Endpoints;
 
@@ -19,13 +20,13 @@ public static class LibraryEndpoints
             async (
                 ILibraryRepository libraryRepository,
                 LibraryDto library,
-                IClaimsHelper claimsHelper
+                IUserService userService
             ) =>
             {
                 // TODO: Check if the library already exists
                 var createdLibrary = await libraryRepository.CreateAsync(library.ToEntity());
-                await claimsHelper.AddAdminForLibraryIdCAsync(createdLibrary.Id);
-                await claimsHelper.UpdateCurrentUserLibraryIdAsync(createdLibrary.Id, false);
+                await userService.AddUserToLibraryAdminsAsync(createdLibrary.Id);
+                await userService.SetCurrentLibraryAsync(createdLibrary.Id);
                 return Results.Created(
                     $"/api/libraries/{createdLibrary.Id}",
                     createdLibrary.FromEntity()
@@ -44,9 +45,9 @@ public static class LibraryEndpoints
         libraryGroup
             .MapPost(
                 "/{id}/current/",
-                async (string id, IClaimsHelper claimsHelper) =>
+                async (string id, IUserService userService) =>
                 {
-                    var result = await claimsHelper.UpdateCurrentUserLibraryIdAsync(id);
+                    var result = await userService.SetCurrentLibraryAsync(id);
                     return result
                         ? Results.Ok()
                         : Results.Problem("Failed to update current library.");
@@ -59,14 +60,14 @@ public static class LibraryEndpoints
         /// </summary>
         libraryGroup.MapGet(
             "/{id}",
-            async (ILibraryRepository libraryRepository, string id, IClaimsHelper claimsHelper) =>
+            async (ILibraryRepository libraryRepository, string id, IUserService userService) =>
             {
                 var library = await libraryRepository.GetByIdAsync(id);
                 if (library is null)
                 {
                     return Results.NotFound();
                 }
-                var currentLibrary = await claimsHelper.GetCurrentLibraryIdAsync();
+                var currentLibrary = await userService.GetCurrentLibraryIdAsync();
                 var result = library.FromEntity();
                 result.IsCurrent = result.Id == currentLibrary;
                 return library is not null ? Results.Ok(result) : Results.NotFound();
@@ -78,14 +79,14 @@ public static class LibraryEndpoints
         /// </summary>
         libraryGroup.MapGet(
             "/",
-            async (ILibraryRepository libraryRepository, IClaimsHelper claimsHelper) =>
+            async (ILibraryRepository libraryRepository, IUserService userService) =>
             {
-                var adminLibraryIds = await claimsHelper.GetAdminForLibraryIdsAsync();
+                var adminLibraryIds = await userService.GetUserLibraryAdminIdsAsync();
                 if (!adminLibraryIds.Any())
                 {
                     return Results.NotFound("No library found for the current user.");
                 }
-                var currentLibrary = await claimsHelper.GetCurrentLibraryIdAsync();
+                var currentLibrary = await userService.GetCurrentLibraryIdAsync();
                 var libraries = await libraryRepository.GetAllAsync(adminLibraryIds);
                 var dtos = libraries.Select(x => x.FromEntity()).ToList();
                 dtos.ForEach(l =>
@@ -105,8 +106,7 @@ public static class LibraryEndpoints
                 async (
                     string id,
                     LibraryDto updatedLibrary,
-                    ILibraryRepository libraryRepository,
-                    IClaimsHelper claimsHelper
+                    ILibraryRepository libraryRepository
                 ) =>
                 {
                     if (id.ToString() != updatedLibrary.Id)
@@ -121,15 +121,20 @@ public static class LibraryEndpoints
             )
             .AddEndpointFilter<AdminLibraryFilter>();
 
+        /// <summary>
+        /// Delete a library by ID
+        /// </summary>
         libraryGroup
             .MapDelete(
                 "/{id}",
-                async (
-                    string id,
-                    ILibraryRepository libraryRepository,
-                    IClaimsHelper claimsHelper
-                ) =>
+                async (string id, ILibraryRepository libraryRepository, IUserService userService) =>
                 {
+                    var currentLibraryId = await userService.GetCurrentLibraryIdAsync();
+                    if (currentLibraryId == id)
+                    {
+                        return Results.BadRequest("Cannot delete the current library.");
+                    }
+
                     var deleted = await libraryRepository.DeleteAsync(id);
                     return deleted ? Results.NoContent() : Results.NotFound();
                 }

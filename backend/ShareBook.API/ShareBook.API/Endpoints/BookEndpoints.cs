@@ -4,7 +4,7 @@ using ShareBook.API.Domain.Enums;
 using ShareBook.API.Domain.Repositories;
 using ShareBook.API.Services.Abstractions.Contracts;
 using ShareBook.API.Services.Abstractions.Extensions;
-using ShareBook.API.Services.Abstractions.Helpers;
+using ShareBook.API.Services.Abstractions.Services;
 
 namespace ShareBook.API.Endpoints;
 
@@ -18,12 +18,12 @@ public static class BookEndpoints
             "/",
             async (
                 BookDto book,
-                IClaimsHelper claimsHelper,
+                IUserService userService,
                 IBookRepository bookRepository,
                 IBookInstanceRepository bookInstanceRepository
             ) =>
             {
-                var libraryId = await claimsHelper.GetCurrentLibraryIdAsync();
+                var libraryId = await userService.GetCurrentLibraryIdAsync();
                 var existingBook = await bookRepository.ExistsAsync(
                     libraryId,
                     book.Isbn10,
@@ -65,11 +65,11 @@ public static class BookEndpoints
 
         bookGroup.MapGet(
             "/{id:guid}",
-            async (Guid id, IBookRepository bookRepository, IClaimsHelper claimsHelper) =>
+            async (Guid id, IBookRepository bookRepository, IUserService userService) =>
             {
-                var libraryId = await claimsHelper.GetCurrentLibraryIdAsync();
+                var libraryId = await userService.GetCurrentLibraryIdAsync();
                 var book = await bookRepository.GetByIdAsync(libraryId, id);
-                return book is not null ? Results.Ok(book) : Results.NotFound();
+                return book is not null ? Results.Ok(book.FromEntity()) : Results.NotFound();
             }
         );
 
@@ -79,12 +79,12 @@ public static class BookEndpoints
                 int pageNumber,
                 int pageSize,
                 IBookRepository bookRepository,
-                IClaimsHelper claimsHelper
+                IUserService userService
             ) =>
             {
-                var libraryId = await claimsHelper.GetCurrentLibraryIdAsync();
+                var libraryId = await userService.GetCurrentLibraryIdAsync();
                 var books = await bookRepository.GetAllAsync(libraryId, pageNumber, pageSize);
-                return Results.Ok(books);
+                return Results.Ok(books.Select(b => b.FromEntity()));
             }
         );
 
@@ -94,10 +94,10 @@ public static class BookEndpoints
                 Guid id,
                 BookDto updatedBook,
                 IBookRepository bookRepository,
-                IClaimsHelper claimsHelper
+                IUserService userService
             ) =>
             {
-                var libraryId = await claimsHelper.GetCurrentLibraryIdAsync();
+                var libraryId = await userService.GetCurrentLibraryIdAsync();
                 var book = await bookRepository.UpdateAsync(updatedBook.ToEntity(libraryId));
                 return book is not null ? Results.Ok(book) : Results.NotFound();
             }
@@ -105,9 +105,9 @@ public static class BookEndpoints
 
         bookGroup.MapDelete(
             "/{id:guid}",
-            async (Guid id, IBookRepository bookRepository, IClaimsHelper claimsHelper) =>
+            async (Guid id, IBookRepository bookRepository, IUserService userService) =>
             {
-                var libraryId = await claimsHelper.GetCurrentLibraryIdAsync();
+                var libraryId = await userService.GetCurrentLibraryIdAsync();
                 var deleted = await bookRepository.DeleteAsync(libraryId, id);
                 return deleted ? Results.NoContent() : Results.NotFound();
             }

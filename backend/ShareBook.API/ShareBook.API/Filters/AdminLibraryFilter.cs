@@ -1,15 +1,15 @@
-using ShareBook.API.Services.Abstractions.Helpers;
+using ShareBook.API.Services.Abstractions.Services;
 
 namespace ShareBook.API.Filters;
 
 public class AdminLibraryFilter : IEndpointFilter
 {
-    private readonly IClaimsHelper claimsHelper;
+    private readonly IUserService userService;
     private readonly ILogger<AdminLibraryFilter> logger;
 
-    public AdminLibraryFilter(IClaimsHelper claimsHelper, ILogger<AdminLibraryFilter> logger)
+    public AdminLibraryFilter(IUserService userService, ILogger<AdminLibraryFilter> logger)
     {
-        this.claimsHelper = claimsHelper;
+        this.userService = userService;
         this.logger = logger;
     }
 
@@ -25,7 +25,7 @@ public class AdminLibraryFilter : IEndpointFilter
             return Results.BadRequest("Library ID is required.");
         }
 
-        var isAdmin = await this.claimsHelper.IsAdminForLibraryIdAsync(libraryId);
+        var isAdmin = await this.userService.IsUserAdminForLibraryAsync(libraryId);
         if (!isAdmin)
         {
             this.logger.LogWarning(

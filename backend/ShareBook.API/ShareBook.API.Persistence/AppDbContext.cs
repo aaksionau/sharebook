@@ -5,7 +5,7 @@ using ShareBook.API.Domain.Entities;
 
 namespace ShareBook.API.Persistence;
 
-public class AppDbContext : IdentityDbContext<IdentityUser>
+public class AppDbContext : IdentityDbContext<AppUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options) { }
@@ -13,6 +13,8 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Book> Books { get; set; }
 
     public DbSet<BookInstance> BookInstances { get; set; }
+
+    public DbSet<AppUser> AppUsers { get; set; }
 
     public DbSet<Library> Libraries { get; set; }
 

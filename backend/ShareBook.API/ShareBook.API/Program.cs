@@ -9,8 +9,9 @@ using ShareBook.API.Domain.Repositories;
 using ShareBook.API.Endpoints;
 using ShareBook.API.Persistence;
 using ShareBook.API.Persistence.Repositories;
-using ShareBook.API.Services.Abstractions.Helpers;
+using ShareBook.API.Services.Abstractions.Services;
 using ShareBook.API.Services.Abstractions.Validators;
+using ShareBook.API.Services.Services;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -32,11 +33,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddAuthentication().AddBearerToken();
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOfLibraryOnly", policy => policy.RequireClaim("AdminForLibraryId"));
-});
+builder.Services.AddAuthorization();
 
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -46,13 +43,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddEntityFrameworkStores<AppDbContext>();
+builder.Services.AddIdentityApiEndpoints<AppUser>().AddEntityFrameworkStores<AppDbContext>();
 
 // Add Repositories
 builder.Services.AddScoped<ILibraryRepository, LibraryRepository>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IBookInstanceRepository, BookInstanceRepository>();
-builder.Services.AddScoped<IClaimsHelper, ClaimsHelper>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Add services.
 builder.Services.AddHttpClient<IISBNdbService, ISBNdbService>(client =>
@@ -88,5 +85,5 @@ app.UseAuthorization();
 app.MapSearchEndpoints();
 app.MapBookEndpoints();
 app.MapLibraryEndpoints();
-app.MapIdentityApi<IdentityUser>();
+app.MapIdentityApi<AppUser>();
 app.Run();
